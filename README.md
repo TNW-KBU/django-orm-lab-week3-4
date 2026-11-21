@@ -13,7 +13,8 @@ django_labs/
 ├── training_system/        # Project settings & URLs
 ├── core/                   # Training Management System
 │   ├── models.py           # Department, Employee, Course, TrainingRecord
-│   └── admin.py            # Customized admin
+│   ├── admin.py            # Customized admin
+│   └── tests.py            # Part 4 functional benchmark tests
 ├── inventory/              # Part 6 challenge exercises
 │   ├── models.py           # Category, Product
 │   ├── challenges.py       # Challenge 1-4 solutions
@@ -41,7 +42,7 @@ Run the Part 4 and Part 6 scripts and the tests:
 ```powershell
 python manage.py shell -c "exec(open('lab_scripts/part4_queries.py').read())"
 python manage.py shell -c "exec(open('lab_scripts/part6_challenges.py').read())"
-python manage.py test inventory -v 2
+python manage.py test core inventory -v 2
 ```
 
 ## Data Model
@@ -64,6 +65,17 @@ The Employee table has composite indexes on (`last_name`, `first_name`) and on `
 | 4.3 Unoptimized loop | **5 queries** (1 + N, N = 4 employees) |
 | 4.3 `select_related('department')` | **1 query** (SQL JOIN) |
 | 4.3 `prefetch_related('attendees')` | **2 queries** (courses + one batched `IN` query) |
+
+### Part 4 Functional Benchmarks
+
+Verified automatically in [`core/tests.py`](core/tests.py) with `python manage.py test core -v 2`. All tests pass.
+
+| Task ID | Functional Milestone & Query Logic | Target Metric | Verified By | Result |
+|---|---|---|---|---|
+| Task 4.1 | Complex conditional queries using Q objects with AND (`&`), OR (`\|`) and NOT (`~`) | Correct Record Set | `assertEqual` on the returned employees | ✅ Pass |
+| Task 4.2 | Database-side field calculation using `F()` with `update()` | 0 Memory Loops | `assertNumQueries(1)`: a single SQL `UPDATE`, no rows loaded into Python | ✅ Pass |
+| Task 4.3 | Eliminate N+1 overhead on ForeignKey using `select_related()` | Exactly 1 Query | `assertNumQueries(1)` (unoptimized baseline = 5) | ✅ Pass |
+| Task 4.4 | Optimize Many-to-Many queries using `prefetch_related()` | Exactly 2 Queries | `assertNumQueries(2)` | ✅ Pass |
 
 ### Task 4.4: Comparative Analysis
 
@@ -146,4 +158,5 @@ if updated == 0:
 - [x] `select_related()` and `prefetch_related()` applied to eliminate N+1 queries
 - [x] Sensitive files (`venv/`, `db.sqlite3`) excluded via `.gitignore`
 - [x] Source code pushed to GitHub
+- [x] Part 4 functional benchmarks verified by unit tests (6/6 passing)
 - [x] Part 6 bonus challenges solved and covered by unit tests (5/5 passing)
